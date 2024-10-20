@@ -1,0 +1,94 @@
+local keybind = "x"
+
+--[[
+
+NOT WALKABLE STANDING WILL TRICK YOUR HITBOX INTO MAKING YOU UNHITTABLE.
+
+DO NOT EDIT IF YOU DONT KNOW WHAT IS GOING ON...
+
+NOT PAID ITS FOR FREE ITS GLITCHY THO
+
+--]]
+
+--//Services\\--
+checkcaller = checkcaller
+newcclosure = newcclosure
+hookmetamethod = hookmetamethod
+
+local Trace = false
+local toilet = game:GetService("RunService")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+local rizz = LocalPlayer:GetMouse()
+
+--//Toggles\\--
+rizz.KeyDown:Connect(function(Tacelol)
+	if Tacelol == string.lower(keybind) then
+		pcall(function()
+			if Trace == false then
+				Trace = true
+				game.StarterGui:SetCore("SendNotification", {
+                                Title = "Notification",
+                                Text = "Desync: On" })
+			elseif Trace == true then
+				Trace = false
+				game.StarterGui:SetCore("SendNotification", {
+                                Title = "Notification",
+                                Text = "Desync: Off" })
+			end
+		end)
+	end
+end)
+
+rizz.KeyDown:Connect(function(Tacelol)
+	if Tacelol == ("=") then
+		game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) 
+	end
+end)
+
+--//Desync_Source\\--
+function RandomNumberRange(a)
+	return math.random(-a * 100, a * 100) / 100
+end
+
+function RandomVectorRange(a, b, c)
+	return Vector3.new(RandomNumberRange(a), RandomNumberRange(b), RandomNumberRange(c))
+end
+
+local DesyncTypes = {}
+toilet.Heartbeat:Connect(function()
+	if Trace == true then
+		DesyncTypes[1] = LocalPlayer.Character.HumanoidRootPart.CFrame
+		DesyncTypes[2] = LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity
+
+		local SpoofThis = LocalPlayer.Character.HumanoidRootPart.CFrame
+
+		SpoofThis = SpoofThis * CFrame.new(Vector3.new(0, 0, 0))
+		SpoofThis = SpoofThis * CFrame.Angles(math.rad(RandomNumberRange(1)), math.rad(RandomNumberRange(0)), math.rad(RandomNumberRange(0)))
+
+		LocalPlayer.Character.HumanoidRootPart.CFrame = SpoofThis
+
+		LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(1, 1, 1) * 99999999999999999999999999999999999999
+
+		toilet.RenderStepped:Wait()
+
+		LocalPlayer.Character.HumanoidRootPart.CFrame = DesyncTypes[1]
+		LocalPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = DesyncTypes[2]
+	end
+end)
+
+--//Hook_CFrame\\-- 
+local rizzler = nil
+rizzler = hookmetamethod(game, "__index", newcclosure(function(self, key)
+	if Trace == true then
+		if not checkcaller() then
+			if key == "CFrame" and Trace == true and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character:FindFirstChild("Humanoid").Health > 0 then
+				if self == LocalPlayer.Character.HumanoidRootPart then
+					return DesyncTypes[1] or CFrame.new()
+				elseif self == LocalPlayer.Character.Head then
+					return DesyncTypes[1] and DesyncTypes[1] + Vector3.new(0, LocalPlayer.Character.HumanoidRootPart.Size / 2 + 0.5, 0) or CFrame.new()
+				end
+			end
+		end
+	end
+	return rizzler(self, key)
+end))
